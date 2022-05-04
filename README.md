@@ -55,3 +55,11 @@ Aluno: Ramon Busiquia Serafim
 ​	Como vai se conectar com o microcontroador?
 
 ​	Tensão de saída vai ser do próprio AD?
+
+
+
+## Referências
+
+https://github.com/BroeringFelipe/automatic-equalizer/blob/master/Relat%C3%B3rio%20do%20Projeto/Relat%C3%B3rio%20Final.pdf
+
+https://www.audioreputation.com/how-to-measure-sound-quality-of-speakers/
