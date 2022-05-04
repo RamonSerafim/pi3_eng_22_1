@@ -63,3 +63,5 @@ Aluno: Ramon Busiquia Serafim
 https://github.com/BroeringFelipe/automatic-equalizer/blob/master/Relat%C3%B3rio%20do%20Projeto/Relat%C3%B3rio%20Final.pdf
 
 https://www.audioreputation.com/how-to-measure-sound-quality-of-speakers/
+
+https://splice.com/blog/difference-bewteen-noise/?utm_source=google&utm_medium=cpc&utm_campaign=Google_Search_Acquisition_Sounds_Nonbrand_DSA_ROW&utm_content=sounds&utm_term=&campaignid=13577111017&adgroupid=123041963239&adid=528665014304&gclid=EAIaIQobChMIt_feqdzF9wIVFjaRCh13fgDaEAAYASAAEgKugPD_BwE
