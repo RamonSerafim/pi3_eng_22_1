@@ -14,6 +14,7 @@ Aluno: Ramon Busiquia Serafim
 
 
 
+
 ## Introdução
 
 ​		Esse relatório tem a finalidade de analisar, simular, montar em bancada e explicar um circuito que faz a análise de determinados espectros de frequência afim de determinar se a caixa de som está funcionando perfeitamente em todas as faixas de frequência.
@@ -21,6 +22,8 @@ Aluno: Ramon Busiquia Serafim
 ​		Utilizando diversos componentes como um microfone ajustado para o propósito aplicado, construindo um ambiente acústico controlado sem reverberação e um microcontrolador para emitir padrões de sinais, fazendo a análise posteriormente comparando com o sinal recebido/enviado.
 
 ​		Possui o intuito de verificar alguns problemas encarados quando passamos da simulação para a execução em bancada, possíveis discrepâncias nos resultados entre ambas.
+
+
 
 
 
@@ -32,6 +35,7 @@ Aluno: Ramon Busiquia Serafim
 - Onde vamos analisar a onda captada?
 - Vai ser comparada com a onda emitida (original)?
 - Como e qual microcontrolador será conectado na caixa de som?
+
 
 
 
@@ -55,11 +59,13 @@ Aluno: Ramon Busiquia Serafim
 
 
 
+
 #### Circuito para geração de sinais
 
 ​		Para realizar as diferentes frequências de áudio que serão estimuladas na caixa de som, é necessário um circuito que gerencie os sinais de interesse, para isso, será utilizado um Circuito Integrado AD9833. Possuindo um resolução de 28 bits,  comunicação SPI, capaz de gerar ondas senoidais, triangulares e quadradas em um intervalo de operação entre 0.1Hz a 25Mhz.
 
 ​		Ele gera um sinal de 12.65mW, considerado baixa potência para este projeto. Portanto, será necessário um bloco amplificador para conectá-lo a caixa de som.
+
 
 
 
