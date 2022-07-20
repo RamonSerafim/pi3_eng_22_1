@@ -14,34 +14,19 @@ Aluno: Ramon Busiquia Serafim
 
 
 
-
 ## Introdução
 
 ​		Esse relatório tem a finalidade de analisar, simular, montar em bancada e explicar um circuito que faz a análise de determinados espectros de frequência afim de determinar se a caixa de som está funcionando perfeitamente em todas as faixas de frequência.
 
-​		Utilizando diversos componentes como um microfone ajustado para o propósito aplicado, construindo um ambiente acústico controlado sem reverberação e um microcontrolador para emitir padrões de sinais, fazendo a análise posteriormente comparando com o sinal recebido/enviado.
+Utilizando diversos componentes como um microfone ajustado para o propósito aplicado, construindo um ambiente acústico controlado sem reverberação e um microcontrolador para emitir padrões de sinais, fazendo a análise posteriormente comparando com o sinal recebido/enviado.
 
-​		Possui o intuito de verificar alguns problemas encarados quando passamos da simulação para a execução em bancada, possíveis discrepâncias nos resultados entre ambas.
-
-
+Possui o intuito de verificar alguns problemas encarados quando passamos da simulação para a execução em bancada, possíveis discrepâncias nos resultados entre ambas.
 
 
 
 ### Metodologia
 
 ​		Com o escopo do projeto definido, para fazer a análise semanalmente foi eleita algumas dúvidas para pesquisa, sendo apresentadas abaixo. Primeiro não devemos pensar na solução final, mas sim separar os problemas em partes e apresentar todas as possibilidades e posteriormente verificar qual será melhor parar o projeto.
-
-- Como vai ser feita a captura do microfone?
-- Onde vamos analisar a onda captada?
-- Vai ser comparada com a onda emitida (original)?
-- Como e qual microcontrolador será conectado na caixa de som?
-
-
-
-
-### Microfone
-
-​		Necessita de um bloco controlador para manter a tensão da saída fixa.
 
 
 
@@ -53,10 +38,38 @@ Aluno: Ramon Busiquia Serafim
 
 ​		O intuito do projeto é visualizar e comparar intensidade de ondas RMS, e isso pode ser feito com um ARM, não sendo preciso utilizar um DSP. Portanto, foi definido que para este projeto será utilizado um STM32F103C8.
 
-#### STM32F103C8 
+
+
+### STM32F103C8 
 
 ​		Microcontrolador mais conhecido como Blue Pill atende todos os pré-requisitos de projeto, utilizando o software STM32CubeMX é possível configurar os pinos de forma mais simples, facilitando o desenvolvimento do projeto e disponibiliza a biblioteca HAL (Hardware Abstraction Layer).
 
+```
+void AD9833_SetWave(uint16_t Wave){
+  switch(Wave){
+  case 0:
+  HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
+    writeSPI(0x2000); // Valor para onda Senoidal
+    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
+    WKNOWN=0;
+    break;
+  case 1:
+     HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
+    writeSPI(0x2028); // Valor para onda Quadrada
+    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
+    WKNOWN=1;
+    break;
+  case 2:
+        HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
+    writeSPI(0x2002); // Valor para onda Triangular
+    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
+    WKNOWN=2;
+    break;
+  default:
+    break;
+  }
+}
+```
 
 
 
@@ -65,9 +78,6 @@ Aluno: Ramon Busiquia Serafim
 ​		Para realizar as diferentes frequências de áudio que serão estimuladas na caixa de som, é necessário um circuito que gerencie os sinais de interesse, para isso, será utilizado um Circuito Integrado AD9833. Possuindo um resolução de 28 bits,  comunicação SPI, capaz de gerar ondas senoidais, triangulares e quadradas em um intervalo de operação entre 0.1Hz a 25Mhz.
 
 ​		Ele gera um sinal de 12.65mW, considerado baixa potência para este projeto. Portanto, será necessário um bloco amplificador para conectá-lo a caixa de som.
-
-
-
 
 #### Amplificador de áudio
 
@@ -87,17 +97,22 @@ Aluno: Ramon Busiquia Serafim
 |  TDA8920  |   D    |    high efficiency audio power amplifier     |    2x100    |
 |  TDA8922  |   D    |    high efficiency audio power amplifier     |    2x75     |
 
-​		
-
 ​		Após verificar todos os amplificadores, para o projeto foi escolhido o TDA7294, um aplificador de classe AB, possui uma boa potência e uma facilidade de implementação, pois como demonstra a figura abaixo, o próprio fabricante disponibiliza um circuito montado no datasheet.
 
+<img src="C:\Users\ramon\Desktop\PI3\circuito amplificador.JPG" alt="circuito amplificador" style="zoom: 67%;" />
 
-## Referências
+​		Com o circuito em mãos, foi utilizado o Software KiCad para montar o layout para impressão da placa.
 
-https://github.com/BroeringFelipe/automatic-equalizer/blob/master/Relat%C3%B3rio%20do%20Projeto/Relat%C3%B3rio%20Final.pdf
+<img src="C:\Users\ramon\Desktop\PI3\layout amplificador.JPG" alt="layout amplificador" style="zoom:80%;" />
 
-https://www.audioreputation.com/how-to-measure-sound-quality-of-speakers/
 
-https://technologyreviewer.com/measure-speaker-sound-quality/
 
-https://www.st.com/resource/en/datasheet/tda7294.pdf
+### Microfone
+
+​		Para o projeto, foi utilizado Microfone Stereo TM-ST1 em conjunto com o circuito amplificador para medir a resposta da caixa de som ao gerador de sinais.
+
+​		De acordo com o Datasheet do fabricante, o microfone garante uma resposta linear entre as faixas de frequência entre 100Hz a 15kHz, sendo aceitável para o projeto pois a máxima frequência audível para os humanos é de 20kHz. 
+
+<img src="C:\Users\ramon\Desktop\PI3\layout mic.JPG" alt="layout mic" style="zoom:80%;" />
+
+​		O circuito pode ser dividido em 3 blocos, o primeiro sendo utilizado como buffer para o microfone, com o objetivo de aumentar a impedância de entrada. Seguindo por um amplificador inversor com ganho de 200 unidades (pensando em colocar um trimpot). E finalizando por um limitador de tensão para a entrada do ADC no microcontrolador, que possui limites de entrada de 2,4V a 3,6V.
