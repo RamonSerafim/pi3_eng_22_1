@@ -1,11 +1,7 @@
-Curso Superior em Engenharia Eletrônica
-
+Curso Superior em Engenharia Eletrônica 
 Unidade Curricular: Projeto Integrador III
-
 Professor: Daniel Lohmann e Robinson Pizzio
-
 Florianópolis, Abril de 2022 
-
 Aluno: Ramon Busiquia Serafim
 
 
@@ -42,8 +38,7 @@ Possui o intuito de verificar alguns problemas encarados quando passamos da simu
 
 ### STM32F103C8 
 
-​		Microcontrolador mais conhecido como Blue Pill atende todos os pré-requisitos de projeto, utilizando o software STM32CubeMX é possível configurar os pinos de forma mais simples, facilitando o desenvolvimento do projeto e disponibiliza a biblioteca HAL (Hardware Abstraction Layer).
-
+​		Microcontrolador mais conhecido como Blue Pill atende todos os pré-requisitos de projeto, utilizando o software STM32CubeMX é possível configurar os pinos de forma mais simples, facilitando o desenvolvimento do projeto e disponibiliza a biblioteca HAL (Hardware Abstraction Layer). O código será apresentado no fim do documento.
 
 #### Circuito para geração de sinais
 
@@ -88,3 +83,118 @@ Possui o intuito de verificar alguns problemas encarados quando passamos da simu
 <img src="C:\Users\ramon\Desktop\PI3\layout mic.JPG" alt="layout mic" style="zoom:80%;" />
 
 ​		O circuito pode ser dividido em 3 blocos, o primeiro sendo utilizado como buffer para o microfone, com o objetivo de aumentar a impedância de entrada. Seguindo por um amplificador inversor com ganho de 200 unidades (pensando em colocar um trimpot). E finalizando por um limitador de tensão para a entrada do ADC no microcontrolador, que possui limites de entrada de 2,4V a 3,6V.
+
+
+
+### Código
+
+```
+/*
+ * AD9833.cpp
+ */
+
+#include <AD9833.h>
+#include <math.h>
+#include <stdio.h>
+#include "stm32f1xx_hal.h"
+
+/* Inicia totalmente uma onda, frequencia e sua fase */
+void AD9833 :: Init (int wave, double frequency, double phase) {
+	SetWaveform (wave);
+	SetFrequency (frequency);
+	SetPhase (phase);
+}
+
+/* Determina uma frequencia especifica em Hz */
+void AD9833 :: SetFrequency (double frequency) {
+
+	if (frequency > 25e6)
+		frequency = 25e6;
+	if (frequency < 0) frequency = 0;
+
+	freqWord = (((frequency*pow(2,28))/FMCLK)+1);
+	FRQHW = ((freqWord & 0xFFFC000) >> 14);
+	FRQLW = (freqWord & 0x3FFF);
+	FRQLW |= 0x4000;
+	FRQHW |= 0x4000;
+
+	HAL_GPIO_WritePin(AD9833PORT, AD9833DATA, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(AD9833PORT, AD9833SCK, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(AD9833PORT, AD9833SS, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(AD9833PORT, AD9833SS, GPIO_PIN_RESET); //low = selected
+	ASM_NOP();
+	writeSPI(0x2100); // enable 16bit words and set reset bit
+	writeSPI(FRQLW);
+	writeSPI(FRQHW);
+	writeSPI(0x2000); // clear reset bit
+	ASM_NOP();
+	HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET); //high = deselected
+	ASM_NOP();
+	return;
+}
+
+/* Determina uma fase para o sinal, determinado como (4096/2π).Phase */
+void AD9833 :: SetPhase (float Phase) {
+	if(Phase<0)Phase=0;
+	if(Phase>360)Phase=360;
+	phaseVal  = ((int)(Phase*(4096/360)))|0XC000;  // 4096/360 = 11.37 change per Degree for Register And using 0xC000 which is Phase 0 Register Address
+
+	 writeSPI(phaseVal);
+}
+
+/* Seleciona o tipo de onda, sendo 0 Senoidal, 1 Quadrada, 2 Triangular, 3 Meia onda quadrada*/
+void AD9833 :: SetWaveform (int Wave) {
+	  switch(Wave){
+	  case 0:
+	    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
+	    writeSPI(0x2000); // Valor para onda Senoidal
+	    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
+	    WKNOWN=0;
+	    break;
+	  case 1:
+	    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
+	    writeSPI(0x2028); // Valor para onda Quadrada
+	    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
+	    WKNOWN=1;
+	    break;
+	  case 2:
+	    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
+	    writeSPI(0x2002); // Valor para onda Triangular
+	    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
+	    WKNOWN=2;
+	  case 3:
+		HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
+		writeSPI(0x2020); // Valor para meia onda quadrada
+		HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
+		WKNOWN=2;
+	    break;
+	  default:
+	    break;
+	  }
+}
+
+/* Retorna a atual frequencia */
+float AD9833 :: GetActualFrequency () {
+	return ((freqWord-1)*FMCLK/pow(2,28));
+}
+
+/* Retorna a fase atual */
+float AD9833 :: GetActualPhase () {
+	return (phaseVal/(4096/360));
+}
+
+void AD9833 :: writeSPI(uint16_t word) {
+	for (uint8_t i = 0; i < 16 ; i++) {
+        if(word & 0x8000) HAL_GPIO_WritePin(AD9833PORT,AD9833DATA,GPIO_PIN_SET);   //bit=1, Set High
+		else HAL_GPIO_WritePin(AD9833PORT,AD9833DATA,GPIO_PIN_RESET);        //bit=0, Set Low
+		ASM_NOP();
+		HAL_GPIO_WritePin(AD9833PORT,AD9833SCK,GPIO_PIN_RESET);             //Data is valid on falling edge
+		ASM_NOP();
+		HAL_GPIO_WritePin(AD9833PORT,AD9833SCK,GPIO_PIN_SET);
+		word = word<<1; //Shift left by 1 bit
+        }
+	HAL_GPIO_WritePin(AD9833PORT,AD9833DATA,GPIO_PIN_RESET);                    //Idle low
+	ASM_NOP();
+}
+```
+
