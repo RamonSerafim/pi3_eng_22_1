@@ -88,6 +88,8 @@ Possui o intuito de verificar alguns problemas encarados quando passamos da simu
 
 ### Código
 
+##### AD9833.cpp
+
 ```
 /*
  * AD9833.cpp
@@ -196,5 +198,65 @@ void AD9833 :: writeSPI(uint16_t word) {
 	HAL_GPIO_WritePin(AD9833PORT,AD9833DATA,GPIO_PIN_RESET);                    //Idle low
 	ASM_NOP();
 }
+```
+
+##### AD9833.h
+
+```
+/*
+ * AD9833.h
+ */
+
+#ifndef __AD9833__
+
+#define __AD9833__
+
+#include <stdio.h>
+typedef enum { SINE_WAVE = 0x2000, TRIANGLE_WAVE = 0x2002,
+			   SQUARE_WAVE = 0x2028, HALF_SQUARE_WAVE = 0x2020} Wave;
+
+#define FMCLK 25000000        // Master Clock On AD9833
+#define AD9833PORT GPIOA      // PORT OF AD9833
+#define AD9833DATA GPIO_PIN_6 // SPI DATA PIN
+#define AD9833SCK GPIO_PIN_5  // SPI Clock PIN
+#define AD9833SS GPIO_PIN_7   // SPI Chip Select
+#define ASM_NOP() asm("NOP")  // Assembly NOPE (Little Delay)
+
+class AD9833 {
+
+private:
+	uint16_t FRQHW = 0;    // Parte superior word
+	uint16_t FRQLW = 0;    // Parte inferior word
+	uint32_t phaseVal=0;   // Valor de fase
+	uint16_t WKNOWN=0;     // Flag tipo de onda
+	uint32_t freqWord = 0; // Valor de frequencia
+
+public:
+
+	/* Inicia totalmente uma onda, frequencia e sua fase */
+	void Init (int wave, double frequency, double phase);
+
+	/* Determina uma frequencia especifica em Hz */
+	void SetFrequency (double frequency);
+
+	/* Determina uma fase para o sinal, determinado como (4096/2π).Phase */
+	void SetPhase (float Phase );
+
+	/* Seleciona o tipo de onda, sendo 0 Senoidal, 1 Quadrada, 2 Triangular, 3 Meia onda quadrada*/
+	void SetWaveform (int Wave);
+
+	/* Retorna a atual frequencia */
+	float GetActualFrequency ();
+
+	/* Retorna a fase atual */
+	float GetActualPhase ();
+
+	void writeSPI (uint16_t word);
+
+	AD9833(){};
+
+};
+
+#endif
 ```
 
