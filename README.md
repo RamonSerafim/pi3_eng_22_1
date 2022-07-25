@@ -44,34 +44,6 @@ Possui o intuito de verificar alguns problemas encarados quando passamos da simu
 
 ​		Microcontrolador mais conhecido como Blue Pill atende todos os pré-requisitos de projeto, utilizando o software STM32CubeMX é possível configurar os pinos de forma mais simples, facilitando o desenvolvimento do projeto e disponibiliza a biblioteca HAL (Hardware Abstraction Layer).
 
-```
-void AD9833_SetWave(uint16_t Wave){
-  switch(Wave){
-  case 0:
-  HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
-    writeSPI(0x2000); // Valor para onda Senoidal
-    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
-    WKNOWN=0;
-    break;
-  case 1:
-     HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
-    writeSPI(0x2028); // Valor para onda Quadrada
-    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
-    WKNOWN=1;
-    break;
-  case 2:
-        HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_RESET);
-    writeSPI(0x2002); // Valor para onda Triangular
-    HAL_GPIO_WritePin(AD9833PORT,AD9833SS,GPIO_PIN_SET);
-    WKNOWN=2;
-    break;
-  default:
-    break;
-  }
-}
-```
-
-
 
 #### Circuito para geração de sinais
 
